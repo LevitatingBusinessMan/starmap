@@ -18,14 +18,20 @@ pub struct Star {
 pub static AMOUNT: usize = 512;
 static PLANET_DISTRIBUTION: LazyLock<rand_distr::Normal<f32>> = LazyLock::new(|| rand_distr::Normal::new(7.0, 4.0).unwrap());
 
-pub fn generate_stars() -> (Vec<Star>, u64) {
-    let seed = random();
+// <SmallRng as SeedableRng>::Seed could be used here to seed from strings
+pub fn generate_stars_with_seed(seed: u64) -> Vec<Star> {
     let mut rng = <SmallRng as SeedableRng>::seed_from_u64(seed);
     let mut stars = Vec::with_capacity(AMOUNT);
 
     for _ in 0..AMOUNT {
         stars.push(generate_star(&mut rng));
     }
+    stars
+}
+
+pub fn generate_stars() -> (Vec<Star>, u64) {
+    let seed = random();
+    let stars = generate_stars_with_seed(seed);
 
     (stars, seed)
 }
