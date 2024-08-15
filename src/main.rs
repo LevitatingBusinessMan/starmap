@@ -58,6 +58,7 @@ enum Msg {
     JumpDistance(f64),
     JumpLines(bool),
     DisplayClass(bool),
+    Print,
 }
 
 #[relm4::component]
@@ -163,6 +164,11 @@ impl SimpleComponent for App {
                         },
                     },
 
+                    gtk::Button {
+                        set_label: "Print",
+                        connect_clicked => Msg::Print,
+                    },
+
                     gtk::Box {
                         set_orientation: gtk::Orientation::Vertical,
                         set_valign: gtk::Align::End,
@@ -177,14 +183,14 @@ impl SimpleComponent for App {
                             // https://stackoverflow.com/a/68107365/8935250
                             #[watch]
                             set_buffer: &gtk::EntryBuffer::builder().text(format!("{:#x}", model.seed)).build(),
-                            connect_activate[sender] => move |buf| {println!("{:?}", buf);sender.input(Msg::EditedSeed(buf.text().to_string()))},
+                            connect_activate[sender] => move |buf| { sender.input(Msg::EditedSeed(buf.text().to_string())) },
                         },
 
                         gtk::Button {
                             set_label: "Regenerate",
                             connect_clicked => Msg::RegenerateSeed,
                         },
-                    }
+                    },
                 },
 
                 gtk::Separator,
@@ -212,10 +218,6 @@ impl SimpleComponent for App {
         let draw_handler = DrawHandler::new();
 
         let (stars, seed) = generator::generate_stars();
-
-        for s in &stars {
-            println!("{} {} {} {:?}", s.name, s.class, s.planets, s.cords);
-        }
 
         let model = App {
             stars,
@@ -261,10 +263,10 @@ impl SimpleComponent for App {
                     },
                     Err(_) => {
                         let alert = gtk::AlertDialog::builder()
-                        .message("Invalid seed")
+                        .detail("The seed you entered is invalid. Seeds should be presented as an hexidecimal.")
+                        .message(format!("Invalid Seed: {}", newseed))
                         .build();
-                        //alert.show();
-                        println!("inval seed");
+                        alert.show(relm4::main_application().active_window().as_ref());
                     },
                 }
             },
@@ -282,6 +284,11 @@ impl SimpleComponent for App {
             },
             Msg::DisplayClass(state) => {
                 self.display_class = state;
+            },
+            Msg::Print => {
+                let printop = gtk::PrintOperation::new();
+                let res = printop.run(gtk::PrintOperationAction::PrintDialog, relm4::main_application().active_window().as_ref()).unwrap();
+                println!("{:?}", res);
             },
             _ => {}
         }

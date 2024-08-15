@@ -56,8 +56,6 @@ fn draw_star(cx: &DrawContext, width: i32, height: i32, star: &Star, app: &App) 
     // star name
     let layout = pangocairo::functions::create_layout(&cx);
     layout.set_font_description(Some(&app.font_desc));
-    //layout.set_font_description(Some(&FontDescription::from_string("Sans Normal 15")));
-    println!("{:?} from {:?}", layout.font_description().unwrap().family(), app.font_desc.family());
     if app.display_class {
         layout.set_text(&format!("{} [{}]", star.name, star.class));
     } else {
