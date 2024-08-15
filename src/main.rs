@@ -1,53 +1,40 @@
+#![feature(lazy_cell)]
 use gtk::gdk;
 use gtk::pango;
 use gtk::prelude::*;
-use gtk::cairo;
 use gtk::FontLevel;
 use relm4::prelude::*;
 use relm4::abstractions::drawing::*;
 
-use std::f64::consts::PI;
+mod draw;
+mod generator;
+
+use generator::Star;
 
 struct App {
+    stars: Vec<Star>,
+    starcount: u32,
     font_dialog_button: gtk::FontDialogButton,
     draw_handler: DrawHandler,
+    seed: u64,
 }
 
 #[derive(Debug)]
 enum Msg {
     FontSelected,
     Resize(i32,i32),
-}
-
-impl App {
-    fn draw(&mut self) {
-        let cx: DrawContext = self.draw_handler.get_context();
-        let width = self.draw_handler.width();
-        let height = self.draw_handler.height();
-
-        cx.set_source_rgb(0.0, 0.0, 0.0);
-        cx.paint().unwrap();
-        cx.set_source_rgb(1.0, 1.0, 1.0);
-        cx.arc(width as f64 / 2.0, height as f64 / 2.0, height.min(width) as f64 / 2.0, 0.0, 2.0 * PI);
-        cx.fill().unwrap();
-        cx.set_font_size(40.0);
-        let family = self.font_dialog_button.font_desc().unwrap().family().unwrap();
-        cx.select_font_face(family.as_str(), cairo::FontSlant::Normal, cairo::FontWeight::Normal);
-        cx.move_to(width as f64 / 2.0, 50.0);
-        cx.show_text("HELLO WORLD").unwrap();
-    }
+    StarCountChanged(u32),
 }
 
 #[relm4::component]
 impl SimpleComponent for App {
-    type Init = u8;
+    type Init = ();
     type Input = Msg;
     type Output = ();
 
     view! {
         gtk::Window {
-            set_title: Some("Simple app"),
-            //set_default_size: (300, 100),
+            set_title: Some("Starmap"),
 
             gtk::Box {
                 set_orientation: gtk::Orientation::Horizontal,
@@ -55,6 +42,7 @@ impl SimpleComponent for App {
 
                 gtk::Box {
                     set_width_request: 250,
+                    set_expand: true,
                     set_orientation: gtk::Orientation::Vertical,
 
                     gtk::Label {
@@ -62,7 +50,8 @@ impl SimpleComponent for App {
                     },
 
                     gtk::SpinButton {
-                        set_adjustment: &gtk::Adjustment::new(0.0,0.0,f64::MAX,1.0,1.0,1.0),
+                        set_adjustment: &gtk::Adjustment::new(model.starcount as f64,0.0,generator::AMOUNT as f64,1.0,1.0,1.0),
+                        connect_value_changed[sender] => move |b| { sender.input(Msg::StarCountChanged(b.value() as u32)) },
                     },
 
                     gtk::Label {
@@ -78,6 +67,19 @@ impl SimpleComponent for App {
                         set_font_desc: &pango::FontDescription::from_string("Sans"),
                         
                         connect_font_desc_notify => Msg::FontSelected,
+                    },
+
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Vertical,
+                        set_valign: gtk::Align::Start,
+
+                        gtk::Entry {
+                            set_buffer: &gtk::EntryBuffer::builder().text(format!("{}", model.seed)).build(),
+                        },
+
+                        gtk::Button {
+                            set_label: "Regenerate",
+                        },
                     }
                 },
 
@@ -98,7 +100,7 @@ impl SimpleComponent for App {
 
     // Initialize the component.
     fn init(
-        counter: Self::Init,
+        _: Self::Init,
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
@@ -107,9 +109,18 @@ impl SimpleComponent for App {
 
         let draw_handler = DrawHandler::new();
 
-        let mut model = App {
+        let (stars, seed) = generator::generate_stars();
+
+        for s in &stars {
+            println!("{} {} {} {:?}", s.name, s.class, s.planets, s.cords);
+        }
+
+        let model = App {
+            stars,
             font_dialog_button: font_dialog_button.clone(),
             draw_handler,
+            seed,
+            starcount: 32,
         };
 
         let draw_area = model.draw_handler.drawing_area();
@@ -129,13 +140,16 @@ impl SimpleComponent for App {
             },
             Msg::Resize(x,y) => {
                 println!("resized {} {}", x, y);
+            },
+            Msg::StarCountChanged(count) => {
+                self.starcount = count;
             }
         }
-        self.draw();
+        draw::draw(self);
     }
 }
 
 fn main() {
-    let app = RelmApp::new("relm4.example.simple");
-    app.run::<App>(0);
+    let app = RelmApp::new("levitating.StarMap");
+    app.run::<App>(());
 }
