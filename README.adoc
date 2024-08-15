@@ -5,4 +5,4 @@ Primarily developed for use in RPGs.
 
 The goal is to generate good looking maps that can be printed.
 
-image::screenshot.png[]
+image::screenshots/screenshot2.png[]
