@@ -720,6 +720,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pangocairo"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50e67bf91c19fccbf9394049d98c67cccec183dd73cbe54a0205da983d4174e7"
+dependencies = [
+ "cairo-rs",
+ "glib",
+ "libc",
+ "pango",
+ "pangocairo-sys",
+]
+
+[[package]]
+name = "pangocairo-sys"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "025f26935d210969dda291fa21afee60da792c4976269581170ea715e00f09c0"
+dependencies = [
+ "cairo-sys-rs",
+ "glib-sys",
+ "libc",
+ "pango-sys",
+ "system-deps",
+]
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -993,6 +1019,7 @@ version = "0.1.0"
 dependencies = [
  "cairo",
  "gtk4",
+ "pangocairo",
  "rand 0.8.5",
  "rand_distr",
  "relm4",

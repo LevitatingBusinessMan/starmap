@@ -11,12 +11,38 @@ mod generator;
 
 use generator::Star;
 
+#[derive(PartialEq, Clone, Debug)]
+struct Colors {
+    starnames: (f64,f64,f64),
+    wall: (f64,f64,f64),
+    starcolor: Option<(f64,f64,f64)>,
+    jumplines: (f64,f64,f64),
+}
+
+static DARK_COLORS: Colors = Colors {
+    starnames: (1.0,1.0,1.0),
+    wall: (0.0,0.0,0.0),
+    starcolor: Some((1.0, 0.5, 0.5)),
+    jumplines: (0.5,0.5,0.5),
+};
+
+static LIGHT_COLORS: Colors = Colors {
+    starnames: (0.0,0.0,0.0),
+    wall: (1.0,1.0,1.0),
+    starcolor: Some((1.0, 0.5, 0.5)),
+    jumplines: (0.5,0.5,0.5),
+};
+
 struct App {
     stars: Vec<Star>,
     font_desc: pango::FontDescription,
     starcount: u32,
     draw_handler: DrawHandler,
     seed: u64,
+    jumplines: bool,
+    jumpdistance: f64,
+    colors: Colors,
+    scale: f64,
 }
 
 #[derive(Debug)]
@@ -26,6 +52,10 @@ enum Msg {
     StarCountChanged(u32),
     RegenerateSeed,
     EditedSeed(String),
+    DarkSelected,
+    LightSelected,
+    JumpDistance(f64),
+    JumpLines(bool),
 }
 
 #[relm4::component]
@@ -36,7 +66,7 @@ impl SimpleComponent for App {
 
     view! {
         gtk::Window {
-            set_title: Some("Starmap"),
+            set_title: Some("CMDR Levitating's starmap generator"),
 
             gtk::Box {
                 set_orientation: gtk::Orientation::Horizontal,
@@ -46,6 +76,7 @@ impl SimpleComponent for App {
                     set_width_request: 250,
                     set_orientation: gtk::Orientation::Vertical,
                     set_margin_all: 20,
+                    set_spacing: 5,
                     set_halign: gtk::Align::Center,
 
                     gtk::Label {
@@ -71,6 +102,45 @@ impl SimpleComponent for App {
                         
                         connect_font_desc_notify[sender] => move |fdb| {
                             sender.input(Msg::FontSelected(fdb.font_desc().unwrap()));
+                        },
+                    },
+
+                    gtk::Label {
+                        set_label: "Color Preset",
+                    },
+
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_halign: gtk::Align::Center,
+                        append: light_preset = &gtk::ToggleButton {
+                            set_label: "Light",
+                            set_active: model.colors == LIGHT_COLORS,
+                            connect_toggled => Msg::LightSelected,
+                        },
+                        gtk::ToggleButton {
+                            set_label: "Dark",
+                            set_active: model.colors == DARK_COLORS,
+                            set_group: Some(&light_preset),
+                            connect_toggled => Msg::DarkSelected,
+                        },
+                    },
+
+                    gtk::Label {
+                        set_label: "Jumpline distance (ly)",
+                    },
+                    gtk::Box {
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_halign: gtk::Align::Center,
+                        gtk::SpinButton {
+                            set_adjustment: &gtk::Adjustment::new(model.jumpdistance, 0.0, 100.0, 0.2, 0.1, 0.0),
+                            set_digits: 2,
+                            set_width_request: 150,
+                            connect_value_changed[sender] => move |b| { sender.input(Msg::JumpDistance(b.value())) },
+                        },
+                        gtk::Switch {
+                            #[watch]
+                            set_active: model.jumplines,
+                            connect_active_notify[sender] => move |s| { sender.input(Msg::JumpLines(s.is_active())) },
                         },
                     },
 
@@ -130,6 +200,10 @@ impl SimpleComponent for App {
             draw_handler,
             seed,
             starcount: 32,
+            jumplines: true,
+            jumpdistance: 10.0,
+            colors: DARK_COLORS.clone(),
+            scale: 100.0,
         };
 
         let draw_area = model.draw_handler.drawing_area();
@@ -141,6 +215,7 @@ impl SimpleComponent for App {
     }
 
     fn update(&mut self, msg: Self::Input, _sender: ComponentSender<Self>) {
+        println!("{:?}", msg);
         match msg {
             Msg::FontSelected(desc) => {
                 println!("Font chosen: {:?}", desc.family().unwrap_or("unknown".into()));
@@ -170,6 +245,18 @@ impl SimpleComponent for App {
                         println!("inval seed");
                     },
                 }
+            },
+            Msg::LightSelected => {
+                self.colors = LIGHT_COLORS.clone()
+            },
+            Msg::DarkSelected => {
+                self.colors = DARK_COLORS.clone()
+            },
+            Msg::JumpDistance(dist) => {
+                self.jumpdistance = dist;
+            },
+            Msg::JumpLines(state) => {
+                self.jumplines = state
             },
             _ => {}
         }
