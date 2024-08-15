@@ -22,15 +22,15 @@ struct Colors {
 static DARK_COLORS: Colors = Colors {
     starnames: (1.0,1.0,1.0),
     wall: (0.0,0.0,0.0),
-    starcolor: Some((1.0, 0.5, 0.5)),
+    starcolor: None,
     jumplines: (0.5,0.5,0.5),
 };
 
 static LIGHT_COLORS: Colors = Colors {
     starnames: (0.0,0.0,0.0),
     wall: (1.0,1.0,1.0),
-    starcolor: Some((1.0, 0.5, 0.5)),
-    jumplines: (0.5,0.5,0.5),
+    starcolor: None,
+    jumplines: (0.7,0.7,0.7),
 };
 
 struct App {
@@ -43,6 +43,7 @@ struct App {
     jumpdistance: f64,
     colors: Colors,
     scale: f64,
+    display_class: bool,
 }
 
 #[derive(Debug)]
@@ -56,6 +57,7 @@ enum Msg {
     LightSelected,
     JumpDistance(f64),
     JumpLines(bool),
+    DisplayClass(bool),
 }
 
 #[relm4::component]
@@ -80,7 +82,7 @@ impl SimpleComponent for App {
                     set_halign: gtk::Align::Center,
 
                     gtk::Label {
-                        set_label: "Stars"
+                        set_label: "Star count"
                     },
 
                     gtk::SpinButton {
@@ -94,7 +96,7 @@ impl SimpleComponent for App {
 
                     gtk::FontDialogButton {
                         set_dialog: &gtk::FontDialog::new(),
-                        set_level: FontLevel::Family,
+                        set_level: FontLevel::Features,
                         set_use_size: false,
                         set_use_font: true,
                         set_font_features: None,
@@ -131,6 +133,8 @@ impl SimpleComponent for App {
                     gtk::Box {
                         set_orientation: gtk::Orientation::Horizontal,
                         set_halign: gtk::Align::Center,
+                        set_spacing: 10,
+
                         gtk::SpinButton {
                             set_adjustment: &gtk::Adjustment::new(model.jumpdistance, 0.0, 100.0, 0.2, 0.1, 0.0),
                             set_digits: 2,
@@ -145,9 +149,28 @@ impl SimpleComponent for App {
                     },
 
                     gtk::Box {
+                        set_orientation: gtk::Orientation::Horizontal,
+                        set_halign: gtk::Align::Center,
+                        set_spacing: 10,
+
+                        gtk::Label {
+                            set_label: "Display star class",
+                        },
+                        gtk::Switch {
+                            #[watch]
+                            set_active: model.display_class,
+                            connect_active_notify[sender] => move |s| { sender.input(Msg::DisplayClass(s.is_active())) },
+                        },
+                    },
+
+                    gtk::Box {
                         set_orientation: gtk::Orientation::Vertical,
                         set_valign: gtk::Align::End,
                         set_vexpand: true,
+
+                        gtk::Label {
+                            set_label: "Seed",
+                        },
 
                         gtk::Entry {
                             gtk::prelude::EditableExt::set_alignment: 0.5,
@@ -196,14 +219,15 @@ impl SimpleComponent for App {
 
         let model = App {
             stars,
-            font_desc: pango::FontDescription::from_string("Sans"),
+            font_desc: pango::FontDescription::from_string("Monospace Bold 12"),
             draw_handler,
             seed,
             starcount: 32,
             jumplines: true,
             jumpdistance: 10.0,
             colors: DARK_COLORS.clone(),
-            scale: 100.0,
+            scale: 50.0,
+            display_class: false,
         };
 
         let draw_area = model.draw_handler.drawing_area();
@@ -219,9 +243,7 @@ impl SimpleComponent for App {
         match msg {
             Msg::FontSelected(desc) => {
                 println!("Font chosen: {:?}", desc.family().unwrap_or("unknown".into()));
-            },
-            Msg::Resize(x,y) => {
-                println!("resized {} {}", x, y);
+                self.font_desc = desc;
             },
             Msg::StarCountChanged(count) => {
                 self.starcount = count;
@@ -256,7 +278,10 @@ impl SimpleComponent for App {
                 self.jumpdistance = dist;
             },
             Msg::JumpLines(state) => {
-                self.jumplines = state
+                self.jumplines = state;
+            },
+            Msg::DisplayClass(state) => {
+                self.display_class = state;
             },
             _ => {}
         }

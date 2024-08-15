@@ -5,7 +5,7 @@ use rand_distr;
 pub mod names;
 
 /// <https://en.wikipedia.org/wiki/Stellar_classification#Harvard_spectral_classification>
-pub static STARCLASSES: &'static [char] = &['O', 'B', 'A', 'F', 'G', 'K', 'M'];
+pub static STARCLASSES: &'static [(char, f64)] = &[('O', 0.00003), ('B', 0.12), ('A', 0.61), ('F', 3.0), ('G', 7.6), ('K', 12.0), ('M', 76.0)];
 
 #[derive(Debug)]
 pub struct Star {
@@ -38,7 +38,7 @@ pub fn generate_stars() -> (Vec<Star>, u64) {
 
 fn generate_star(rng: &mut impl Rng) -> Star {
     let name = *names::NAMES.choose(rng).unwrap();
-    let class = *STARCLASSES.choose(rng).unwrap();
+    let class = STARCLASSES.choose_weighted(rng, |c| c.1).unwrap().0;
     let planets = PLANET_DISTRIBUTION.sample(rng).round() as u8;
     let cords = rng.gen();
     Star {name, class, planets, cords}
