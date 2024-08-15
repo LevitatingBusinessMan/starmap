@@ -84,7 +84,7 @@ impl SimpleComponent for App {
                             // https://stackoverflow.com/a/68107365/8935250
                             #[watch]
                             set_buffer: &gtk::EntryBuffer::builder().text(format!("{:#x}", model.seed)).build(),
-                            connect_activate[sender] => move |buf| {println!("{:?}", buf);sender.input(Msg::EditedSeed(buf.text().to_string()))}
+                            connect_activate[sender] => move |buf| {println!("{:?}", buf);sender.input(Msg::EditedSeed(buf.text().to_string()))},
                         },
 
                         gtk::Button {

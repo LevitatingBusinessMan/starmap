@@ -1,6 +1,3 @@
-use relm4::prelude::*;
-use gtk::prelude::*;
-use gtk::cairo;
 use relm4::abstractions::DrawContext;
 
 use std::f64::consts::PI;
