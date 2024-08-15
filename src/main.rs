@@ -13,15 +13,15 @@ use generator::Star;
 
 struct App {
     stars: Vec<Star>,
+    font_desc: pango::FontDescription,
     starcount: u32,
-    font_dialog_button: gtk::FontDialogButton,
     draw_handler: DrawHandler,
     seed: u64,
 }
 
 #[derive(Debug)]
 enum Msg {
-    FontSelected,
+    FontSelected(pango::FontDescription),
     Resize(i32,i32),
     StarCountChanged(u32),
 }
@@ -58,20 +58,22 @@ impl SimpleComponent for App {
                         set_label: "Font",
                     },
 
-                    #[local_ref]
-                    font_dialog_button -> gtk::FontDialogButton {
+                    gtk::FontDialogButton {
+                        set_dialog: &gtk::FontDialog::new(),
                         set_level: FontLevel::Family,
                         set_use_size: false,
                         set_use_font: true,
                         set_font_features: None,
-                        set_font_desc: &pango::FontDescription::from_string("Sans"),
+                        set_font_desc: &model.font_desc,
                         
-                        connect_font_desc_notify => Msg::FontSelected,
+                        connect_font_desc_notify[sender] => move |fdb| {
+                            sender.input(Msg::FontSelected(fdb.font_desc().unwrap()));
+                        },
                     },
 
                     gtk::Box {
                         set_orientation: gtk::Orientation::Vertical,
-                        set_valign: gtk::Align::Start,
+                        set_valign: gtk::Align::End,
 
                         gtk::Entry {
                             set_buffer: &gtk::EntryBuffer::builder().text(format!("{}", model.seed)).build(),
@@ -105,8 +107,6 @@ impl SimpleComponent for App {
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
         
-        let font_dialog_button = gtk::FontDialogButton::new(Some(gtk::FontDialog::new()));
-
         let draw_handler = DrawHandler::new();
 
         let (stars, seed) = generator::generate_stars();
@@ -117,7 +117,7 @@ impl SimpleComponent for App {
 
         let model = App {
             stars,
-            font_dialog_button: font_dialog_button.clone(),
+            font_desc: pango::FontDescription::from_string("Sans"),
             draw_handler,
             seed,
             starcount: 32,
@@ -133,10 +133,8 @@ impl SimpleComponent for App {
 
     fn update(&mut self, msg: Self::Input, _sender: ComponentSender<Self>) {
         match msg {
-            Msg::FontSelected => {
-                if let Some(desc) = self.font_dialog_button.font_desc() {
-                    println!("Font chosen: {:?}", desc.family().unwrap_or("unknown".into()));
-                }
+            Msg::FontSelected(desc) => {
+                println!("Font chosen: {:?}", desc.family().unwrap_or("unknown".into()));
             },
             Msg::Resize(x,y) => {
                 println!("resized {} {}", x, y);

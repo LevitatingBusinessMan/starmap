@@ -15,7 +15,7 @@ pub struct Star {
     pub cords: (f64, f64),
 }
 
-pub static AMOUNT: usize = 128;
+pub static AMOUNT: usize = 512;
 static PLANET_DISTRIBUTION: LazyLock<rand_distr::Normal<f32>> = LazyLock::new(|| rand_distr::Normal::new(7.0, 4.0).unwrap());
 
 pub fn generate_stars() -> (Vec<Star>, u64) {
