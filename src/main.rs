@@ -2,7 +2,6 @@ use std::fs::File;
 
 use generator::generate_stars_with_seed;
 use gtk::gdk;
-use gtk::gio::Cancellable;
 use gtk::pango;
 use gtk::prelude::*;
 use gtk::FontLevel;
@@ -51,7 +50,6 @@ struct App {
 #[derive(Debug)]
 enum Msg {
     FontSelected(pango::FontDescription),
-    Resize(i32,i32),
     StarCountChanged(u32),
     RegenerateSeed,
     EditedSeed(String),
@@ -117,7 +115,7 @@ impl SimpleComponent for App {
                     gtk::Box {
                         set_orientation: gtk::Orientation::Horizontal,
                         set_halign: gtk::Align::Center,
-                        append: light_preset = &gtk::ToggleButton {
+                        append: _light_preset = &gtk::ToggleButton {
                             set_label: "Light",
                             set_active: model.colors == LIGHT_COLORS,
                             connect_toggled => Msg::LightSelected,
@@ -125,7 +123,7 @@ impl SimpleComponent for App {
                         gtk::ToggleButton {
                             set_label: "Dark",
                             set_active: model.colors == DARK_COLORS,
-                            set_group: Some(&light_preset),
+                            set_group: Some(&_light_preset),
                             connect_toggled => Msg::DarkSelected,
                         },
                     },
@@ -198,13 +196,13 @@ impl SimpleComponent for App {
                 gtk::Separator,
 
                 #[local_ref]
-                draw_area -> gtk::DrawingArea {
+                _draw_area -> gtk::DrawingArea {
                     set_expand: true,
                     set_width_request: 400,
                     set_height_request: 400,
                     set_margin_all: 10,
                     set_cursor: gdk::Cursor::from_name("cell", None).as_ref(),
-                    connect_resize[sender] => move |_,x,y| {sender.input(Msg::Resize(x,y))},
+                    //connect_resize[sender] => move |_,x,y| {sender.input(Msg::Resize(x,y))},
                 },
             }
         }
@@ -234,7 +232,7 @@ impl SimpleComponent for App {
             display_class: false,
         };
 
-        let draw_area = model.draw_handler.drawing_area();
+        let _draw_area = model.draw_handler.drawing_area();
 
         // Insert the code generation of the view! macro here
         let widgets = view_output!();
@@ -313,8 +311,7 @@ impl SimpleComponent for App {
                         Err(e) => println!("while picking file: {e:?}"),
                     }
                 });
-            },
-            _ => {}
+            }
         }
         draw::draw(self);
     }

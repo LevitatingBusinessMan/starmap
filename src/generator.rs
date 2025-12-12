@@ -11,7 +11,7 @@ pub static STARCLASSES: &'static [(char, f64)] = &[('O', 0.00003), ('B', 0.12), 
 pub struct Star {
     pub name: &'static str,
     pub class: char,
-    pub planets: u8,
+    pub _planets: u8,
     pub cords: (f64, f64),
 }
 
@@ -39,7 +39,7 @@ pub fn generate_stars() -> (Vec<Star>, u64) {
 fn generate_star(rng: &mut impl Rng) -> Star {
     let name = *names::NAMES.choose(rng).unwrap();
     let class = STARCLASSES.choose_weighted(rng, |c| c.1).unwrap().0;
-    let planets = PLANET_DISTRIBUTION.sample(rng).round() as u8;
+    let _planets = PLANET_DISTRIBUTION.sample(rng).round() as u8;
     let cords = rng.gen();
-    Star {name, class, planets, cords}
+    Star {name, class, _planets, cords}
 }
