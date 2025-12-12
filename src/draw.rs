@@ -1,4 +1,4 @@
-use gtk::pango::{ffi::PANGO_SCALE, FontDescription};
+use gtk::pango::ffi::PANGO_SCALE;
 use rand_distr::num_traits::Pow;
 use relm4::abstractions::DrawContext;
 
@@ -15,7 +15,7 @@ pub fn draw(app: &mut crate::App) {
 
     cx.set_source_rgb(app.colors.wall.0, app.colors.wall.1, app.colors.wall.2);
     cx.paint().unwrap();
-    
+
     if app.jumplines {
         draw_jumplines(&cx, width, height, app);
     }

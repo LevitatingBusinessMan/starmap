@@ -1,6 +1,8 @@
-#![feature(lazy_cell)]
+use std::fs::File;
+
 use generator::generate_stars_with_seed;
 use gtk::gdk;
+use gtk::gio::Cancellable;
 use gtk::pango;
 use gtk::prelude::*;
 use gtk::FontLevel;
@@ -58,7 +60,7 @@ enum Msg {
     JumpDistance(f64),
     JumpLines(bool),
     DisplayClass(bool),
-    Print,
+    Save,
 }
 
 #[relm4::component]
@@ -102,7 +104,7 @@ impl SimpleComponent for App {
                         set_use_font: true,
                         set_font_features: None,
                         set_font_desc: &model.font_desc,
-                        
+
                         connect_font_desc_notify[sender] => move |fdb| {
                             sender.input(Msg::FontSelected(fdb.font_desc().unwrap()));
                         },
@@ -165,8 +167,8 @@ impl SimpleComponent for App {
                     },
 
                     gtk::Button {
-                        set_label: "Print",
-                        connect_clicked => Msg::Print,
+                        set_label: "Save",
+                        connect_clicked => Msg::Save,
                     },
 
                     gtk::Box {
@@ -214,7 +216,7 @@ impl SimpleComponent for App {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        
+
         let draw_handler = DrawHandler::new();
 
         let (stars, seed) = generator::generate_stars();
@@ -241,7 +243,7 @@ impl SimpleComponent for App {
     }
 
     fn update(&mut self, msg: Self::Input, _sender: ComponentSender<Self>) {
-        println!("{:?}", msg);
+        println!("msg: {:?}", msg);
         match msg {
             Msg::FontSelected(desc) => {
                 println!("Font chosen: {:?}", desc.family().unwrap_or("unknown".into()));
@@ -285,10 +287,32 @@ impl SimpleComponent for App {
             Msg::DisplayClass(state) => {
                 self.display_class = state;
             },
-            Msg::Print => {
-                let printop = gtk::PrintOperation::new();
-                let res = printop.run(gtk::PrintOperationAction::PrintDialog, relm4::main_application().active_window().as_ref()).unwrap();
-                println!("{:?}", res);
+            Msg::Save => {
+                let surface = self.draw_handler.get_context().target().clone();
+                let dialog = gtk::FileDialog::builder()
+                    .title("Save Starmap")
+                    .initial_name("starmap.png")
+                    .build();
+
+                dialog.save(relm4::main_application().active_window().as_ref(), gtk::gio::Cancellable::NONE, move |result| {
+                    match result {
+                        Ok(file) => match File::create(file.path().unwrap()) {
+                            Ok(mut file) => match surface.write_to_png(&mut file) {
+                                Ok(()) => {},
+                                Err(e) => println!("while writing: {e:?}"),
+                            },
+                            Err(e) => {
+                                println!("while creating file: {e:?}");
+                                let alert = gtk::AlertDialog::builder()
+                                    .message("Error creating file")
+                                    .detail(format!("Error: {}", e))
+                                    .build();
+                                alert.show(relm4::main_application().active_window().as_ref());
+                            },
+                        },
+                        Err(e) => println!("while picking file: {e:?}"),
+                    }
+                });
             },
             _ => {}
         }
