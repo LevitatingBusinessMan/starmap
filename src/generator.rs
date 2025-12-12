@@ -40,6 +40,6 @@ fn generate_star(rng: &mut impl Rng) -> Star {
     let name = *names::NAMES.choose(rng).unwrap();
     let class = STARCLASSES.choose_weighted(rng, |c| c.1).unwrap().0;
     let _planets = PLANET_DISTRIBUTION.sample(rng).round() as u8;
-    let cords = rng.gen();
+    let cords = rng.r#gen();
     Star {name, class, _planets, cords}
 }
