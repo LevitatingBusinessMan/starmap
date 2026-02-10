@@ -59,6 +59,7 @@ enum Msg {
     JumpLines(bool),
     DisplayClass(bool),
     Save,
+    Resize(i32, i32),
 }
 
 #[relm4::component]
@@ -69,7 +70,7 @@ impl SimpleComponent for App {
 
     view! {
         gtk::Window {
-            set_title: Some("CMDR Levitating's starmap generator"),
+            set_title: Some("CMDR Levitating's star map generator"),
 
             gtk::Box {
                 set_orientation: gtk::Orientation::Horizontal,
@@ -202,7 +203,7 @@ impl SimpleComponent for App {
                     set_height_request: 400,
                     set_margin_all: 10,
                     set_cursor: gdk::Cursor::from_name("cell", None).as_ref(),
-                    //connect_resize[sender] => move |_,x,y| {sender.input(Msg::Resize(x,y))},
+                    connect_resize[sender] => move |_,x,y| {sender.input(Msg::Resize(x,y))},
                 },
             }
         }
@@ -219,7 +220,7 @@ impl SimpleComponent for App {
 
         let (stars, seed) = generator::generate_stars();
 
-        let model = App {
+        let mut model = App {
             stars,
             font_desc: pango::FontDescription::from_string("Monospace Bold 12"),
             draw_handler,
@@ -237,11 +238,12 @@ impl SimpleComponent for App {
         // Insert the code generation of the view! macro here
         let widgets = view_output!();
 
+		draw::draw(&mut model);
+
         ComponentParts { model, widgets }
     }
 
     fn update(&mut self, msg: Self::Input, _sender: ComponentSender<Self>) {
-        println!("msg: {:?}", msg);
         match msg {
             Msg::FontSelected(desc) => {
                 println!("Font chosen: {:?}", desc.family().unwrap_or("unknown".into()));
@@ -288,7 +290,7 @@ impl SimpleComponent for App {
             Msg::Save => {
                 let surface = self.draw_handler.get_context().target().clone();
                 let dialog = gtk::FileDialog::builder()
-                    .title("Save Starmap")
+                    .title("Save starmap")
                     .initial_name("starmap.png")
                     .build();
 
@@ -311,13 +313,14 @@ impl SimpleComponent for App {
                         Err(e) => println!("while picking file: {e:?}"),
                     }
                 });
-            }
+            },
+            Msg::Resize(_w, _h) => {},
         }
         draw::draw(self);
     }
 }
 
 fn main() {
-    let app = RelmApp::new("levitating.StarMap");
+    let app = RelmApp::new("ng.levitati.Starmap");
     app.run::<App>(());
 }

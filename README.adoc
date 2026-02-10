@@ -1,4 +1,4 @@
-= CMDR Levitating's StarMap generator
+= CMDR Levitating's star map generator
 
 This is a GTK tool that generates neat looking star maps.
 Primarily developed for use in RPGs.

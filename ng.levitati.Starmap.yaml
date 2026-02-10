@@ -8,16 +8,18 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
-  - --socket=session-bus
   - --env=RUST_BACKTRACE=1
 modules:
   - name: starmap
     buildsystem: simple
     build-commands:
-      - install -Dm755 target/release/starmap /app/bin/starmap
+      - install -Dm755 starmap /app/bin/starmap
       - install -Dm644 ng.levitati.Starmap.desktop /app/share/applications/ng.levitati.Starmap.desktop
       - install -Dm644 ng.levitati.Starmap.svg /app/share/icons/hicolor/scalable/apps/ng.levitati.Starmap.svg
     sources:
-      - type: dir
-        path: .
-      - cargo-sources.json
+      - type: file
+        path: target/release/starmap
+      - type: file
+        path: ng.levitati.Starmap.desktop
+      - type: file
+        path: ng.levitati.Starmap.svg
