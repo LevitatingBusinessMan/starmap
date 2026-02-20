@@ -1,0 +1,4 @@
+flatpak:
+  python3 flatpak-cargo-generator.py ../Cargo.lock -o cargo-sources.json
+  flatpak run --command=flathub-build org.flatpak.Builder ng.levitati.Starmap.yaml
+  flatpak build-bundle repo starmap.flatpak ng.levitati.Starmap

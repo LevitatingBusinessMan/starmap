@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>ng.levitati.Starmap</id>
+  
+  <name>Starmap</name>
+  <summary>Generate fictional star maps for use in RPGs</summary>
+  
+  <url type="homepage">https://git.levitati.ng/LevitatingBusinessMan/starmap</url>
+
+  <developer id="ng.levitati">
+    <name>Rein Fernhout</name>
+  </developer>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>tablet</control>
+  </supports>
+  
+  <description>
+    <p>
+      This is a GTK tool that generates neat looking star maps. Primarily developed for use in RPGs. The goal is to generate good looking maps that can be printed.
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">ng.levitati.Starmap.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://git.levitati.ng/LevitatingBusinessMan/starmap/raw/branch/master/screenshots/screenshot2.png</image>
+    </screenshot>
+  </screenshots>
+</component>

@@ -1,7 +1,11 @@
 [Desktop Entry]
+Version=1.0
+Type=Application
+
 Name=Starmap
 Comment=Generate fictional star maps for use in RPGs
+Categories=Graphics;2DGraphics;
+
+Icon=ng.levitati.Starmap
 Exec=starmap
-Icon=ng.levitati.StarMap
 Terminal=false
-Type=Application

@@ -1,0 +1,31 @@
+id: ng.levitati.Starmap
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+command: starmap
+finish-args:
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --env=RUST_BACKTRACE=1
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-nightly
+build-options:
+  prepend-path: /usr/lib/sdk/rust-nightly/bin
+  env:
+    CARGO_HOME: /run/build/starmap/cargo
+    CARGO_NET_OFFLINE: 'true'
+modules:
+  - name: starmap
+    buildsystem: simple
+    build-commands:
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo build --offline --profile flatpak
+      - install -Dm755 target/flatpak/starmap ${FLATPAK_DEST}/bin/starmap
+      - install -Dm644 flatpak/ng.levitati.Starmap.desktop ${FLATPAK_DEST}/share/applications/ng.levitati.Starmap.desktop
+      - install -Dm644 flatpak/icon.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/ng.levitati.Starmap.svg
+      - install -Dm644 flatpak/ng.levitati.Starmap.metainfo.xml ${FLATPAK_DEST}/share/metainfo/ng.levitati.Starmap.metainfo.xml
+    sources:
+      - type: git
+        path: ..
+        commit: HEAD
+      - cargo-sources.json
